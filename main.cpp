@@ -1,24 +1,130 @@
 #include "raylib.h"
 #include "raymath.h"
 
-struct Character {
-  Texture2D *sprite;
-  Rectangle spriteCropPosition;
-  Vector2 center;
-  float updateTime;
-  float runningTime;
+class Character {
+  private:
+    Texture2D *sprite;
+    Texture2D *idleSprite;
+    Texture2D *runningSprite;
+    bool isRunning;
+    Rectangle charcaterPosition;
+    Vector2 charcaterCenter;
+    float updateTime = 1.0f / 24.0f;
+    float runningTime;
+    float facingDirection = 1.0f;
+    Rectangle spriteCropPosition{
+      0.0f,
+      0.0f,
+      32.0f,
+      32.0f
+    };
+    void setSprite(Texture2D* newSprite) {
+      sprite = newSprite;
+    }
+  public:
+    void faceRight() {
+      facingDirection = 1.0f;
+    }
+    void faceLeft() {
+      facingDirection = -1.0f;
+    }
+    void setIdleSprite(Texture2D* newIdleSprite) {
+      idleSprite = newIdleSprite;
+    }
+    void setRunningSprite(Texture2D* newRunningSprite) {
+      runningSprite = newRunningSprite;
+    }
+    void setIsRunning(bool newIsRunningStatus) {
+      isRunning = newIsRunningStatus;
+      if (isRunning) {
+        setSprite(runningSprite);
+      } else {
+        setSprite(idleSprite);
+      }
+    }
+    void incrementRunningTime(float deltaTime) {
+      runningTime += deltaTime;
+      if (runningTime >= updateTime) {
+        runningTime = 0.0f;
+        spriteCropPosition.x += 32.0f;
+        if (spriteCropPosition.x >= 32.0f * 11) {
+          spriteCropPosition.x = 0;
+        }
+      }
+    }
+    void setCharacterPosition(Rectangle newCharacterPosition) {
+      charcaterPosition = newCharacterPosition;
+    }
+    void setCharacterCenter(Vector2 newCharcaterCenter) {
+      charcaterCenter = newCharcaterCenter;
+    }
+    void draw() {
+      DrawTexturePro(
+        *sprite,
+        Rectangle{
+          spriteCropPosition.x,
+          spriteCropPosition.y,
+          spriteCropPosition.width * facingDirection,
+          spriteCropPosition.height
+        },
+        charcaterPosition,
+        charcaterCenter,
+        0.0f,
+        WHITE
+      );
+    }
+};
+
+class World {
+  private:
+    float speed{8.0f};
+    Texture2D *texture;
+    Vector2 cropPosition{
+      x: 0.0f,
+      y: 0.0f,
+    };
+    Vector2 nextCropUpdate{
+      x: 0.0f,
+      y: 0.0f,
+    };
+    void moveWorldCropPosition() {
+      cropPosition = Vector2Subtract(cropPosition,
+      Vector2Scale(
+        Vector2Normalize(nextCropUpdate),
+        speed
+      ));
+    }
+  public:
+    void setTexture(Texture2D* newTexture) {
+      texture = newTexture;
+    }
+    void prepareScrollUp() {
+      nextCropUpdate.y = -1.0f;
+    }
+    void prepareScrollDown() {
+      nextCropUpdate.y = 1.0f;
+    }
+    void prepareScrollLeft() {
+      nextCropUpdate.x = -1.0f;
+    }
+    void prepareScrollRight() {
+      nextCropUpdate.x = 1.0f;
+    }
+    void applyScrollAndReset() {
+      moveWorldCropPosition();
+      nextCropUpdate = {
+        x: 0.0f,
+        y: 0.0f,
+      };
+    }
+    void draw() {
+      DrawTextureEx(*texture, cropPosition, 0.0f, 2, WHITE);
+    }
 };
 
 int main() {
   const int WINDOW_WIDTH{800};
   const int WINDOW_HEIGHT{800};
-
-  const Rectangle mainPlayerDestination{
-    ((float)WINDOW_WIDTH / 2.0f) - 64.0f,
-    ((float)WINDOW_HEIGHT / 2.0f) - 64.0f,
-    128.0f,
-    128.0f
-  };
 
   InitWindow(WINDOW_WIDTH, WINDOW_HEIGHT, "Classy clash");
 
@@ -35,17 +141,26 @@ int main() {
   Texture2D pinkManTexture_idle{LoadTexture("characters/Pink Man/Idle (32x32).png")};
   Texture2D pinkManTexture_running{LoadTexture("characters/Pink Man/Run (32x32).png")};
 
-  Character mainPlayer{};
-  mainPlayer.updateTime = 1.0f / 24.0f;
-  mainPlayer.sprite = &pinkManTexture_idle;
-  mainPlayer.center = {
+  // W.O.R.L.D.
+  World world;
+  world.setTexture(&worldTexture);
+
+  // P.L.A.Y.E.R.
+  Character mainPlayer = Character();
+
+  mainPlayer.setIdleSprite(&pinkManTexture_idle);
+  mainPlayer.setRunningSprite(&pinkManTexture_running);
+
+  mainPlayer.setCharacterPosition(Rectangle{
+    ((float)WINDOW_WIDTH / 2.0f) - 64.0f,
+    ((float)WINDOW_HEIGHT / 2.0f) - 64.0f,
+    128.0f,
+    128.0f
+  });
+  mainPlayer.setCharacterCenter(Vector2{
     x: 32.0f,
     y: 32.0f
-  };
-  mainPlayer.spriteCropPosition.x = 0.0f;
-  mainPlayer.spriteCropPosition.y = 0.0f;
-  mainPlayer.spriteCropPosition.height = 32.0f;
-  mainPlayer.spriteCropPosition.width = 32.0f;
+  });
 
   SetTargetFPS(60);
   
@@ -56,56 +171,36 @@ int main() {
 
     // Keys control
     Vector2 direction{};
+    bool characterIsMoving{false};
 
     if (IsKeyDown(KEY_LEFT)) {
-      direction.x = -1.0f;
-      rightLeft = -1.f;
+      world.prepareScrollLeft();
+      characterIsMoving = true;
+      mainPlayer.faceLeft();
     }
     if (IsKeyDown(KEY_RIGHT)) {
-      direction.x = 1.0f;
-      rightLeft = 1.f;
+      world.prepareScrollRight();
+      characterIsMoving = true;
+      mainPlayer.faceRight();
     }
-    if (IsKeyDown(KEY_DOWN)) direction.y = 1.0f;
-    if (IsKeyDown(KEY_UP)) direction.y = -1.0f;
-
-    characterIsMoving = Vector2Length(direction) > 0.0f;
-
-    if (characterIsMoving) {
-      croppedWorldPosition = Vector2Subtract(croppedWorldPosition,
-      Vector2Scale(
-        Vector2Normalize(direction),
-        speed
-      ));
-      mainPlayer.sprite = &pinkManTexture_running;
-    } else {
-      mainPlayer.sprite = &pinkManTexture_idle;
+    if (IsKeyDown(KEY_DOWN)) {
+      world.prepareScrollDown();
+      characterIsMoving = true;
     }
+    if (IsKeyDown(KEY_UP)) {
+      world.prepareScrollUp();
+      characterIsMoving = true;
+    }
+
+    mainPlayer.setIsRunning(characterIsMoving);
 
     // Animation
-    mainPlayer.runningTime += deltaTime;
-    if (mainPlayer.runningTime >= mainPlayer.updateTime) {
-      mainPlayer.runningTime = 0.0f;
-      mainPlayer.spriteCropPosition.x += 32.0f;
-      if (mainPlayer.spriteCropPosition.x >= 32.0f * 11) {
-        mainPlayer.spriteCropPosition.x = 0;
-      }
-    }
+    mainPlayer.incrementRunningTime(deltaTime);
 
     // Drawing
-    DrawTextureEx(worldTexture, croppedWorldPosition, 0.0f, 2, WHITE);
-    DrawTexturePro(
-      (*mainPlayer.sprite),
-      Rectangle{
-        mainPlayer.spriteCropPosition.x,
-        mainPlayer.spriteCropPosition.y,
-        mainPlayer.spriteCropPosition.width * rightLeft,
-        mainPlayer.spriteCropPosition.height
-      },
-      mainPlayerDestination,
-      mainPlayer.center,
-      0.0f,
-      WHITE
-    );
+    world.applyScrollAndReset();
+    world.draw();  
+    mainPlayer.draw();
 
     EndDrawing();
   }
