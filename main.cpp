@@ -3,22 +3,15 @@
 #include "raymath.h"
 #include "src/character.hpp"
 #include "src/world.hpp"
+#include "src/movement-control.hpp"
 
 int main() {
-  const int WINDOW_WIDTH{800};
-  const int WINDOW_HEIGHT{800};
+  int WINDOW_WIDTH{800};
+  int WINDOW_HEIGHT{800};
 
   InitWindow(WINDOW_WIDTH, WINDOW_HEIGHT, "Classy clash");
 
   float speed{8.0};
-  bool characterIsMoving{false};
-  float rightLeft{1.0f};
-
-  Texture2D worldTexture{LoadTexture("levels-map/level-1.png")};
-  Vector2 croppedWorldPosition{
-    x: 0.0f,
-    y: 0.0f,
-  };
 
   // W.O.R.L.D.
   World world = World();
@@ -37,21 +30,18 @@ int main() {
   while (!WindowShouldClose()) {
     float deltaTime{GetFrameTime()};
     BeginDrawing();
-    ClearBackground(BLACK);
+    ClearBackground(Color{
+      30, 30, 30, 0
+    });
 
     // Keys control
-    std::string direction = "";
+    std::string direction = getDirection(&WINDOW_WIDTH, &WINDOW_HEIGHT, &world.texture.width, &world.texture.height, world.getWorldPosition());
   
-    if (IsKeyDown(KEY_DOWN)) direction += "BOTTOM";
-    if (IsKeyDown(KEY_UP)) direction += "TOP";
-    if (IsKeyDown(KEY_LEFT)) direction += "LEFT";
-    if (IsKeyDown(KEY_RIGHT)) direction += "RIGHT";
-
-    if (direction == "") {
-      mainPlayer.idle();
-    } else {
+    if (direction != "") {
       world.move(direction);
       mainPlayer.move(direction);
+    } else {
+      mainPlayer.idle();
     }
 
     // Animation
@@ -64,7 +54,7 @@ int main() {
     EndDrawing();
   }
   CloseWindow();
-  UnloadTexture(worldTexture);
+  UnloadTexture(world.texture);
   UnloadTexture(mainPlayer.idleSprite);
   UnloadTexture(mainPlayer.runningSprite);
 }

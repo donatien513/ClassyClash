@@ -1,17 +1,22 @@
 #include <string>
 #include "raylib.h"
-#include "raymath.h"
+#include "game-config.h"
 
 class World {
   private:
     float speed{8.0f};
-    Texture2D texture{LoadTexture("levels-map/level-1.png")};
+    Vector2 worldPosition {
+      x: 0.0f,
+      y: 0.0f,
+    };
     Vector2 cropPosition{
       x: 0.0f,
       y: 0.0f,
     };
-    void moveWorldCropPosition(Vector2 nextCropUpdate);
+    void moveWorldPosition(Vector2 nextCropUpdate);
   public:
+    Texture2D texture{LoadTexture("levels-map/level-1.png")};
     void move(std::string direction);
     void draw();
+    Vector2* getWorldPosition();
 };
