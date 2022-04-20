@@ -4,7 +4,6 @@
 
 class World {
   private:
-    float speed{8.0f};
     Vector2 worldPosition {
       x: 0.0f,
       y: 0.0f,

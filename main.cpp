@@ -6,8 +6,8 @@
 #include "src/movement-control.hpp"
 
 int main() {
-  int WINDOW_WIDTH{800};
-  int WINDOW_HEIGHT{800};
+  int WINDOW_WIDTH{400};
+  int WINDOW_HEIGHT{400};
 
   InitWindow(WINDOW_WIDTH, WINDOW_HEIGHT, "Classy clash");
 
@@ -19,10 +19,10 @@ int main() {
   // P.L.A.Y.E.R.
   Character mainPlayer = Character();
   mainPlayer.setCharacterPosition(Rectangle{
-    ((float)WINDOW_WIDTH / 2.0f) - 64.0f,
-    ((float)WINDOW_HEIGHT / 2.0f) - 64.0f,
-    128.0f,
-    128.0f
+    (static_cast<float>(WINDOW_WIDTH) / 2.0f) - 64.0f,
+    (static_cast<float>(WINDOW_HEIGHT) / 2.0f) - 64.0f,
+    64.0f,
+    64.0f
   });
 
   SetTargetFPS(60);
