@@ -1,7 +1,7 @@
 #include <string>
 #include "raylib.h"
 #include "raymath.h"
-#include "src/character.hpp"
+#include "src/hero.hpp"
 #include "src/world.hpp"
 #include "src/movement-control.hpp"
 
@@ -17,8 +17,7 @@ int main() {
   World world = World();
 
   // P.L.A.Y.E.R.
-  Character mainPlayer = Character();
-  mainPlayer.setCharacterPosition(Rectangle{
+  Hero mainPlayer = Hero(Rectangle{
     (static_cast<float>(WINDOW_WIDTH) / 2.0f) - 64.0f,
     (static_cast<float>(WINDOW_HEIGHT) / 2.0f) - 64.0f,
     64.0f,
@@ -34,8 +33,10 @@ int main() {
       30, 30, 30, 0
     });
 
+
+
     // Keys control
-    std::string direction = getDirection(&WINDOW_WIDTH, &WINDOW_HEIGHT, &world.texture.width, &world.texture.height, world.getWorldPosition());
+    std::string direction = getDirection(&WINDOW_WIDTH, &WINDOW_HEIGHT, world.getTexture(), world.getWorldPosition());
   
     if (direction != "") {
       world.move(direction);
@@ -45,7 +46,7 @@ int main() {
     }
 
     // Animation
-    mainPlayer.incrementRunningTime(deltaTime);
+    mainPlayer.incrementAnimationTime(deltaTime);
 
     // Drawing
     world.draw();  
@@ -53,8 +54,7 @@ int main() {
 
     EndDrawing();
   }
+  world.unloadTexture();
+  mainPlayer.unloadTexture();
   CloseWindow();
-  UnloadTexture(world.texture);
-  UnloadTexture(mainPlayer.idleSprite);
-  UnloadTexture(mainPlayer.runningSprite);
 }

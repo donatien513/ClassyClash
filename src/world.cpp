@@ -33,3 +33,11 @@ Vector2* World::getWorldPosition() {
 void World::draw() {
     DrawTextureEx(texture, cropPosition, 0.0f, WORLD_SCALE, WHITE);
 };
+
+Texture2D* World::getTexture() {
+    return &texture;
+}
+
+void World::unloadTexture() {
+    UnloadTexture(texture);
+};

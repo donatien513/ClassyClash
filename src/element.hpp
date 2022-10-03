@@ -2,17 +2,17 @@
 #include "raylib.h"
 #include "raymath.h"
 
-class Character {
+class Element {
   private:
     Texture2D *sprite;
-    bool isRunning;
+    bool isMoving;
     Rectangle charcaterPosition{};
     Vector2 charcaterCenter{Vector2{
       x: 32.0f,
       y: 32.0f
     }};
     float updateTime = 1.0f / 24.0f;
-    float runningTime;
+    float animationTime;
     float facingDirection = 1.0f;
     Rectangle spriteCropPosition{
       0.0f,
@@ -21,14 +21,14 @@ class Character {
       32.0f
     };
     void setSprite(Texture2D* newSprite);
-    void setIsRunning(bool newIsRunningStatus);
-  public:
+    void setIsMoving(bool newIsMovingStatus);
     Texture2D idleSprite{LoadTexture("characters/Virtual Guy/Idle (32x32).png")};
-    Texture2D runningSprite{LoadTexture("characters/Virtual Guy/Run (32x32).png")};
+    Texture2D movingSprite{LoadTexture("characters/Virtual Guy/Run (32x32).png")};
+  public:
     void move(std::string direction);
     void idle();
-    void incrementRunningTime(float deltaTime);
-    void setCharacterPosition(Rectangle newCharacterPosition);
+    void incrementAnimationTime(float deltaTime);
+    Element(Rectangle newElementPosition);
+    void unloadTexture();
     void draw();
-    Character();
 };

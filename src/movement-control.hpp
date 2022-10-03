@@ -1,4 +1,4 @@
 #include <string>
 #include "raylib.h"
 
-std::string getDirection(int* windowWidth, int* windowHeight, int* mapWidth, int* mapHeight, Vector2* mapCropPosition);
+std::string getDirection(int* windowWidth, int* windowHeight, Texture2D* worldTexture, Vector2* mapCropPosition);
